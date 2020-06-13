@@ -1,30 +1,18 @@
 import React, {useReducer, useState} from 'react';
 import './App.css';
-import {AppContext} from './appContext'
+import {UserContext} from './UserContext'
 import { Route, Switch, BrowserRouter as Router, NavLink} from 'react-router-dom'
 import MainComponent from './Components/MainComponent'
 import SecondComp from './Components/SecondComp'
-import {availableOptions} from './Options'
+import axios from 'axios';
 
 function App() {
-  
-const rn = require('random-number');
-const newName = () =>
-  {
-    const names = ['Benny','Ronnie','Alex','Paul','Dane','Madeon'];
-    const gen = rn.generator({
-      min:  0
-    , max:  (names.length - 1)
-    , integer: true
-    })
-    return names[gen()];
-  }
   const initialState = 
   {
-    name: newName(),
-    age: 20,
     skills : [],
-}
+    directors: [],
+    dop:[],
+  }
 const handleAdd = (item) =>{
     dispatch({type: 'ADD_SKILL', skill:item});
     setAvailableSkills(availableSkills.filter((i)=>{
@@ -36,17 +24,50 @@ const handleDelete = (item) =>
   setAvailableSkills([...availableSkills,item]);
   dispatch({type: 'REMOVE_SKILL', item:item})
 }
+
+const getDirector = async movieID =>
+{ 
+  const response = await axios(
+    `https://api.themoviedb.org/3/movie/${movieID}/credits?api_key=766f9538cfe65a20e82986827e13778d`)
+  const crew = await response.data.crew;
+  const director = crew.filter(item => item["department"]==="Directing" && item["job"] === "Director")
+  return director[0].name;
+}
+
+const getDOP = async movieID =>
+{ 
+  const response = await axios(
+    `https://api.themoviedb.org/3/movie/${movieID}/credits?api_key=766f9538cfe65a20e82986827e13778d`)
+  const crew = await response.data.crew;
+  const dop = crew.filter(item => item["job"] === "Director of Photography")
+  return dop[0].name
+}
+
+const handleAddMovie = (name,id) =>
+{
+  if(!state.skills.includes(name))
+  {
+    dispatch({type:'ADD_MOVIE', item:name})
+    getDirector(id).then((data)=>{
+        dispatch({type:'ADD_DIRECT', item:data})
+    })
+  /*  getDOP(id).then((data)=>{
+      dispatch({type:'ADD_DOP', item:data})
+  })*/
+  }
+}
+
 function reducer(prevState, action){
   switch(action.type)
   {
+    case 'ADD_DOP':
+      return {...prevState, dop:[...prevState.dop, action.item]}
+    case 'ADD_DIRECT':
+      return {...prevState, directors:[...prevState.directors, action.item]}
+    case 'ADD_MOVIE':
+      return {...prevState, skills:[...prevState.skills, action.item]}
     case 'CUSTOM_ADD':
       return {...prevState, skills:[...prevState.skills, action.payload]}
-    case 'INCREASE':
-      return {...prevState, age: prevState.age+1};
-    case 'DECREASE' :
-      return {...prevState, age: prevState.age-1};
-    case 'R_NAME':
-      return {...prevState, name:newName()};
     case 'ADD_SKILL':
         return {...prevState, skills:[...prevState.skills, action.skill]};
     case 'REMOVE_SKILL':
@@ -61,71 +82,53 @@ function reducer(prevState, action){
   }
 }  
   const [state, dispatch] = useReducer(reducer, initialState)
-
   const [availableSkills, setAvailableSkills] = 
   useState(['Acrobat','Photographer','Cinematographer','Musician','Doctor','Engineer','Dancer','Stripper','Actor']);
-  const [bodyOptions, setBodyOptions] = 
-  useState(['A','B','C','D','E'])
-  const [generatorOption, setGeneratorOption] = 
-  useState(['A','B','C','D','E'])
-
-
-
-  const choosenSkillsList = state.skills.map((item)=>{
-    return(<li style={{fontSize:"14pt",fontWeight:"bold"}}>
-      <button onClick={()=>{handleDelete(item)}}>x</button>{item}
-      </li>)});
-  const availableSkillsList = availableSkills.map((item)=>{
-      return (<li>
-        <button onClick={()=>{handleAdd(item)}}>+</button> {item}
-        </li>)});
-  const bodyOptionsList = bodyOptions.map((item)=>{
-    return (<li>
-      <button onClick={()=>{handleAdd(item)}}>+</button> {item}
-      </li>)});
-
   
-  
+ const watchedMovies = state.skills.map((item)=>{
+   return(<li style={{fontSize:"12pt"}}>{item}</li>)
+ })
+ const directors = state.directors.map((item)=>{
+  return(<li>{item}</li>)
+})
+const dops = state.dop.map((item)=>{
+  return(<li>{item}</li>)
+})
+
   return (
       <div style={{padding:"25px"}}>
-      <AppContext.Provider>
+      <UserContext.Provider>
       <Router>
-        <NavLink exact to="/" activeStyle={{fontWeight: "bold", fontSize:"16pt"}}>Control 1</NavLink> | 
+        <NavLink exact to="/" activeStyle={{fontWeight: "bold", fontSize:"16pt"}}>Find A Movie</NavLink> | 
         <NavLink to="/2" activeStyle={{fontWeight: "bold", fontSize:"16pt"}}> Control 2</NavLink> |
         <Switch>
           <Route exact path="/">
-              <MainComponent dispatch={dispatch} handleAdd={handleAdd} />
+              <MainComponent handleAddMovie={handleAddMovie} />
           </Route>
           <Route path="/2">
               <SecondComp dispatch={dispatch} handleAdd={handleAdd}/>
           </Route>
         </Switch>
       </Router>
-      <h1>{state.name}</h1>
-      <p>Age:{state.age}</p>
-      <div style={{display:'grid', 'grid-template-columns': '200px 200px 200px 200px 200px'}}>
+      <h1>Watched Movies</h1>
+      <div style={{display:'grid', 'grid-template-columns': '300px 300px 300px 200px 200px'}}>
         <div>
-        <p style={{'textDecoration':'underline'}}>Chosen Skills:</p>
-          {(choosenSkillsList.length > 0) ? choosenSkillsList : <p>(Empty)</p>}
-        </div>
-        <div>
-        <p style={{'textDecoration':'underline'}}>Available Skills: </p>
-          {(availableSkillsList.length > 0) ? availableSkillsList : <p>(Empty)</p>}
+        <p style={{'textDecoration':'underline'}}>Title</p>
+        {(watchedMovies.length > 0) ? watchedMovies : <p>(Empty)</p>}
         </div>
         <div>
-        <p style={{'textDecoration':'underline'}}>Available Skills: </p>
-          {(bodyOptionsList.length > 0) ? bodyOptionsList : <p>(Empty)</p>}
+        <p style={{'textDecoration':'underline'}}>Personal Rating</p>
         </div>
         <div>
-        <p style={{'textDecoration':'underline'}}>Available Skills: </p>
-          {(availableSkillsList.length > 0) ? availableSkillsList : <p>(Empty)</p>}
+        <p style={{'textDecoration':'underline'}}>Director of Photography</p>
+        {(dops.length > 0) ? dops : <p>(Empty)</p>}
         </div>
         <div>
-        <p style={{'textDecoration':'underline'}}>Available Skills: </p>
-          {(availableSkillsList.length > 0) ? availableSkillsList : <p>(Empty)</p>}
+        </div>
+        <div>
         </div>
         </div>
-      </AppContext.Provider>
+      </UserContext.Provider>
       </div>
       )
 }
