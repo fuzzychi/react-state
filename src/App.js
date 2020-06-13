@@ -7,8 +7,7 @@ import SecondComp from './Components/SecondComp'
 import {availableOptions} from './Options'
 
 function App() {
-
-
+  
 const rn = require('random-number');
 const newName = () =>
   {
@@ -20,6 +19,12 @@ const newName = () =>
     })
     return names[gen()];
   }
+  const initialState = 
+  {
+    name: newName(),
+    age: 20,
+    skills : [],
+}
 const handleAdd = (item) =>{
     dispatch({type: 'ADD_SKILL', skill:item});
     setAvailableSkills(availableSkills.filter((i)=>{
@@ -31,12 +36,6 @@ const handleDelete = (item) =>
   setAvailableSkills([...availableSkills,item]);
   dispatch({type: 'REMOVE_SKILL', item:item})
 }
-const initialState = 
-  {
-    name: newName(),
-    age: 20,
-    skills : [],
-    }
 function reducer(prevState, action){
   switch(action.type)
   {
