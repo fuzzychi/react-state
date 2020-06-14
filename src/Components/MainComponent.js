@@ -1,7 +1,6 @@
 import React from 'react';
 import {useState} from 'react';
 import axios from 'axios';
-import { movies } from '../Movies';
 import Autosuggest from 'react-autosuggest';
 
 function MainComponent({handleAddMovie})
@@ -16,18 +15,13 @@ function MainComponent({handleAddMovie})
             selectedYear: '',
             overview:'',
             poster_path:'',
+            date:new Date(),
     })
     const search = async val =>{
         const response = await axios(
         `https://api.themoviedb.org/3/search/movie?query=${val}&language=en-US&api_key=766f9538cfe65a20e82986827e13778d`)
         const movies = await response.data.results.sort((a,b) =>{return b["vote_average"] - a["vote_average"]})
         return movies;
-    }
-    const movieDetail = async val => {
-        const response = await axios(
-            `https://api.themoviedb.org/3/movie/${val}?api_key=766f9538cfe65a20e82986827e13778d`)
-            const movies = await response.data.results.sort((a,b) =>{return b["vote_average"] - a["vote_average"]})
-            return movies;
     }
     const onChange = (event, {newValue}) =>{       
         setState((prevState) => {return ({...prevState, value: newValue})})
@@ -52,12 +46,15 @@ function MainComponent({handleAddMovie})
         setState((prevState) => {return ({...prevState, 
             selected:true, 
             selectedID:suggestion.id,
-            selectedYear:suggestion.release_date.substr(0,4), 
+            selectedYear:suggestion.release_date,
             selectedTitle:suggestion.title,
             overview:suggestion.overview,
             poster_path:suggestion.poster_path,
         })})
         console.log(suggestion)
+    }
+    const onDateChange = date =>{
+        setState((prevState) => {return ({...prevState, date:date})})
     }
     const {value, suggestedMovies, selected,selectedID,selectedTitle,overview,selectedYear,poster_path} = state;
     const inputProps = {
@@ -68,6 +65,8 @@ function MainComponent({handleAddMovie})
     return(
         <div>
             <br></br>
+            <div style={{display:'grid', 'grid-template-columns': '400px 400px'}}>
+            <div>
             <Autosuggest 
                 suggestions={suggestedMovies}
                 onSuggestionsFetchRequested={onSuggestionsFetchRequested}
@@ -77,13 +76,36 @@ function MainComponent({handleAddMovie})
                 inputProps={inputProps}
                 onSuggestionSelected={onSuggestionSelected}
             />
-            <h1>{selectedTitle} - {selectedYear}</h1>
+            </div>
+            <div>
+   
+            </div>
+            </div>
+            <hr />
+            {selected
+            ?
+            <>
+            <div style={{display:'grid', 'grid-template-columns': '200px 400px'}}>
+            <div>
             <img src={`https://image.tmdb.org/t/p/w500/${poster_path}`} alt="poster" style={{width:"150px"}} />
-            <p style={{width:"400px"}}>{overview}</p>
-            <button disabled={!selected} onClick={()=> {handleAddMovie(selectedTitle, selectedID)}}>Add movie</button>
-            <hr></hr>
+            </div>
+            <div style={{verticalAlign:"top"}}>
+            <h1>{selectedTitle} - ({selectedYear.substr(0,4)})</h1>
+            <p>{overview}</p>
+            </div>
+            </div>
+            <button style={{fontSize:"16pt"}} disabled={!selected} onClick={()=> {handleAddMovie(selectedTitle, selectedID)}}>Add movie</button>
+            </>
+            :<span></span>
+            }          
         </div>
     )
 }
 
 export default MainComponent
+
+//496243
+
+
+//https://api.themoviedb.org/3/person/{person_id}/movie_credits?api_key=<<api_key>>&language=en-US
+//https://api.themoviedb.org/3/movie/496243/credits?api_key=766f9538cfe65a20e82986827e13778d
