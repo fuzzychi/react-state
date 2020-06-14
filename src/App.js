@@ -22,7 +22,10 @@ function App() {
       {
         const list = [];
         snapshot.forEach(doc =>{
-          list.push(doc.data().title)
+          list.push({
+          id: doc.id,
+          title:doc.data().title
+          })
           })
         dispatch({type:'SET_LIST', list:list})
       })
@@ -49,7 +52,7 @@ const getDOP = async movieID =>
 
 const handleAddMovie = (name,id) =>
 {
-  if(!state.movies.includes(name))
+  if(!state.movies.filter(movie => movie.title === name).length)
   {
     dispatch({type:'ADD_MOVIE', item:name})
     db.collection("movies").add({id:id, title:name})
@@ -61,15 +64,26 @@ const handleAddMovie = (name,id) =>
   })*/
   }
 }
-
+const removeMovie = (item) =>
+{
+    db.collection("movies").doc(item.id).delete().then(()=>{
+      dispatch({type:'DELETE_MOVIE',item:item.id})
+    })
+}
 const clearList = () =>
 {
   
 }
-
 function reducer(prevState, action){
   switch(action.type)
   {
+    case 'DELETE_MOVIE':
+      return {...prevState,
+            movies:(prevState.movies.filter(movie =>
+              {
+                if(movie.id !== action.item)
+                  return movie
+              }))}
     case 'SET_LIST':
       return {...prevState, movies:action.list}
     case 'ADD_DOP':
@@ -78,24 +92,13 @@ function reducer(prevState, action){
       return {...prevState, directors:[...prevState.directors, action.item]}
     case 'ADD_MOVIE':
       return {...prevState, movies:[...prevState.movies, action.item]}
-    case 'CUSTOM_ADD':
-      return {...prevState, skills:[...prevState.skills, action.payload]}
-    case 'ADD_SKILL':
-        return {...prevState, skills:[...prevState.skills, action.skill]};
-    case 'REMOVE_SKILL':
-        return {...prevState, 
-              skills:(prevState.skills.filter((skill)=>{
-                if(skill !== action.item)
-                  return skill;
-              }))
-              };
     default:
       return prevState;
   }
 }   
   
  const watchedMovies = state.movies.map((item)=>{
-   return(<li style={{fontSize:"12pt"}}>{item}</li>)
+   return(<li style={{fontSize:"12pt"}}><button onClick={() => removeMovie(item)}>x</button> {item.title}</li>)
  })
  const directors = state.directors.map((item)=>{
   return(<li>{item}</li>)
@@ -120,7 +123,7 @@ const dops = state.dop.map((item)=>{
         </Switch>
       </Router>
       <h1>Watched Movies</h1>
-      <div style={{display:'grid', 'grid-template-columns': '300px 300px 300px 200px 200px'}}>
+      <div style={{display:'grid', 'grid-template-columns': '400px 300px 300px 200px 200px'}}>
         <div>
         <p style={{'textDecoration':'underline'}}>Title</p>
         {(watchedMovies.length > 0) ? watchedMovies : <p>(Empty)</p>}
