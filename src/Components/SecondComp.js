@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 
 
-function SecondComp({dispatch, handleAdd})
+function SecondComp({clearList})
 {
     const [inputField, setInputField] = useState('')
     const handleChange = (event) =>{
@@ -10,10 +10,7 @@ function SecondComp({dispatch, handleAdd})
     return(
         <div>
             <br/>
-             <input type="text" id="newField" value={inputField} onChange={handleChange}/>
-             <button onClick={() => {dispatch({type: 'CUSTOM_ADD', payload:inputField})
-                                    setInputField("")
-             }}>Add</button>
+            <button>Clear List</button>
         </div>
     )
 }

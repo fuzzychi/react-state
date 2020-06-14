@@ -1,29 +1,33 @@
-import React, {useReducer, useState} from 'react';
+import React, {useReducer, useState, useEffect} from 'react';
 import './App.css';
 import {UserContext} from './UserContext'
 import { Route, Switch, BrowserRouter as Router, NavLink} from 'react-router-dom'
 import MainComponent from './Components/MainComponent'
 import SecondComp from './Components/SecondComp'
 import axios from 'axios';
+import { db } from './firebase';
 
 function App() {
   const initialState = 
-  {
-    skills : [],
+  { 
+    movies : [],
     directors: [],
     dop:[],
   }
-const handleAdd = (item) =>{
-    dispatch({type: 'ADD_SKILL', skill:item});
-    setAvailableSkills(availableSkills.filter((i)=>{
-      return !(item === i);
-    }));
-}
-const handleDelete = (item) =>
-{
-  setAvailableSkills([...availableSkills,item]);
-  dispatch({type: 'REMOVE_SKILL', item:item})
-}
+  const [state, dispatch] = useReducer(reducer,initialState)
+
+  useEffect(() => {
+    const movieList= db.collection("movies");
+    movieList.onSnapshot(snapshot => 
+      {
+        const list = [];
+        snapshot.forEach(doc =>{
+          list.push(doc.data().title)
+          })
+        dispatch({type:'SET_LIST', list:list})
+      })
+  }, []);
+  
 
 const getDirector = async movieID =>
 { 
@@ -45,9 +49,10 @@ const getDOP = async movieID =>
 
 const handleAddMovie = (name,id) =>
 {
-  if(!state.skills.includes(name))
+  if(!state.movies.includes(name))
   {
     dispatch({type:'ADD_MOVIE', item:name})
+    db.collection("movies").add({id:id, title:name})
     getDirector(id).then((data)=>{
         dispatch({type:'ADD_DIRECT', item:data})
     })
@@ -57,15 +62,22 @@ const handleAddMovie = (name,id) =>
   }
 }
 
+const clearList = () =>
+{
+  
+}
+
 function reducer(prevState, action){
   switch(action.type)
   {
+    case 'SET_LIST':
+      return {...prevState, movies:action.list}
     case 'ADD_DOP':
       return {...prevState, dop:[...prevState.dop, action.item]}
     case 'ADD_DIRECT':
       return {...prevState, directors:[...prevState.directors, action.item]}
     case 'ADD_MOVIE':
-      return {...prevState, skills:[...prevState.skills, action.item]}
+      return {...prevState, movies:[...prevState.movies, action.item]}
     case 'CUSTOM_ADD':
       return {...prevState, skills:[...prevState.skills, action.payload]}
     case 'ADD_SKILL':
@@ -80,12 +92,9 @@ function reducer(prevState, action){
     default:
       return prevState;
   }
-}  
-  const [state, dispatch] = useReducer(reducer, initialState)
-  const [availableSkills, setAvailableSkills] = 
-  useState(['Acrobat','Photographer','Cinematographer','Musician','Doctor','Engineer','Dancer','Stripper','Actor']);
+}   
   
- const watchedMovies = state.skills.map((item)=>{
+ const watchedMovies = state.movies.map((item)=>{
    return(<li style={{fontSize:"12pt"}}>{item}</li>)
  })
  const directors = state.directors.map((item)=>{
@@ -106,7 +115,7 @@ const dops = state.dop.map((item)=>{
               <MainComponent handleAddMovie={handleAddMovie} />
           </Route>
           <Route path="/2">
-              <SecondComp dispatch={dispatch} handleAdd={handleAdd}/>
+             <SecondComp clearList={clearList}/>
           </Route>
         </Switch>
       </Router>
