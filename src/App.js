@@ -56,7 +56,7 @@ const handleAddMovie = (name,id) =>
   {
     dispatch({type:'ADD_MOVIE', item:name})
     db.collection("movies").add({id:id, title:name})
-    getDirector(id).then((data)=>{
+    /*getDirector(id).then((data)=>{
         dispatch({type:'ADD_DIRECT', item:data})
     })
   /*  getDOP(id).then((data)=>{
