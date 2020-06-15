@@ -4,19 +4,21 @@ import axios from 'axios';
 import Autosuggest from 'react-autosuggest';
 
 function MainComponent({handleAddMovie})
-{
-    const [state, setState] = useState(
-        {
-            suggestedMovies:[],
-            value: '',
-            selected: false,
-            selectedID:'',
-            selectedTitle:'',
-            selectedYear: '',
-            overview:'',
-            poster_path:'',
-            date:new Date(),
-    })
+{   
+    const intialState = 
+    {
+        suggestedMovies:[],
+        value: '',
+        selected: false,
+        selectedID:'',
+        selectedTitle:'',
+        selectedYear: '',
+        overview:'',
+        poster_path:'',
+        date:new Date(),
+    }      
+    const [visible, setVisible] = useState(false)
+    const [state, setState] = useState(intialState)
     const search = async val =>{
         const response = await axios(
         `https://api.themoviedb.org/3/search/movie?query=${val}&language=en-US&api_key=766f9538cfe65a20e82986827e13778d`)
@@ -63,8 +65,7 @@ function MainComponent({handleAddMovie})
         onChange: onChange
     };
     return(
-        <div>
-            <br></br>
+        <>
             <div style={{display:'grid', 'grid-template-columns': '400px 400px'}}>
             <div>
             <Autosuggest 
@@ -94,18 +95,16 @@ function MainComponent({handleAddMovie})
             <p>{overview}</p>
             </div>
             </div>
-            <button style={{fontSize:"16pt"}} disabled={!selected} onClick={()=> {handleAddMovie(selectedTitle, selectedID)}}>Add movie</button>
+            <button style={{fontSize:"16pt"}} disabled={!selected} onClick={()=> {
+                handleAddMovie(selectedTitle, selectedID)
+                setState(intialState)
+                }}>Add movie</button>
             </>
             :<span></span>
-            }          
-        </div>
+            }      
+            
+        </>
     )
 }
 
 export default MainComponent
-
-//496243
-
-
-//https://api.themoviedb.org/3/person/{person_id}/movie_credits?api_key=<<api_key>>&language=en-US
-//https://api.themoviedb.org/3/movie/496243/credits?api_key=766f9538cfe65a20e82986827e13778d

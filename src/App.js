@@ -1,5 +1,6 @@
 import React, {useReducer, useEffect} from 'react';
 import './App.css';
+
 import {UserContext} from './UserContext'
 import { Route, Switch, BrowserRouter as Router, NavLink} from 'react-router-dom'
 import MainComponent from './Components/MainComponent'
@@ -8,12 +9,25 @@ import { db } from './firebase';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Rating from '@material-ui/lab/Rating';
+import {DatePicker as DatePickerMUI} from '@material-ui/pickers';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+import {ToastContainer, toast} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import MovieItem from './Components/MovieItem';
+
 
 function App() {
+  
+  const notify = (msg) => {
+    toast(msg,{position:toast.POSITION.TOP_LEFT, autoClose:2000,})
+  }
 
   const initialState = 
   { 
     movies : [],
+    eventChange : true,
   }
   const [state, dispatch] = useReducer(reducer,initialState)
 
@@ -33,7 +47,7 @@ function App() {
           })
         dispatch({type:'SET_LIST', list:list})
       })
-  }, []);
+  },[]);
 
 const handleAddMovie = (name,id) =>
 {
@@ -47,21 +61,26 @@ const handleAddMovie = (name,id) =>
       dateWatched:today,
       dateAdded:today,
     }).then(() =>
-    {
-      //dispatch({type:'ADD_MOVIE', item:name})
+    { 
+      notify(`${name} has been added`);
     })
   }
 }
 const removeMovie = (item) =>
 {
+  if(item){
     db.collection("movies").doc(item.id).delete().then(()=>{
       dispatch({type:'DELETE_MOVIE',item:item.id})
+      notify(`${item.title} deleted`);
     })
+  }
 }
-const onDateChange = (date,id) =>{
-  if(date && id)
+const handleChangeRating = (rating,id) => {
+  if(rating && id)
   {
-      db.collection("movies").doc(id).set({"dateWatched":date},{merge:true})
+      db.collection("movies").doc(id).set({"rating":rating},{merge:true}).then(
+        notify(`Rating changed`)
+      )
   }
 }
 function reducer(prevState, action){
@@ -86,19 +105,15 @@ function reducer(prevState, action){
       return prevState;
   }
 }   
-
- const watchedMovies = state.movies.map((item)=>{
-   return(
-        <>
-        <button style={{width:"20px"}} onClick={() => removeMovie(item)}>x</button>
-        <div>{item.title}</div>
-        <div><Rating value={item.rating} precision={0.5}/></div>
-        <div><DatePicker selected={item.dateWatched.toDate()} dateFormat="MMMM d, yyyy" onChange={(date)=> {onDateChange(date,item.id)}} /></div>
-        </>)
- })
-
- console.log(new Date())
-  return (
+const handleDateChange = (date, id) =>
+{
+  if(date && id)
+  {
+      db.collection("movies").doc(id).set({"dateWatched":date},{merge:true})
+      notify("Date changed");
+  }
+}
+return (
       <div style={{padding:"25px"}}>
       <UserContext.Provider>
       <Router>
@@ -113,24 +128,29 @@ function reducer(prevState, action){
           </Route>
         </Switch>
       </Router>
+      <ToastContainer />
       <h1>Watched Movies</h1>
+      <TransitionGroup>
       <div style={{display:'grid', 'grid-template-columns': '400px 300px 300px 200px 200px'}}>
-      <div style={{display:'grid', 'grid-template-columns': '30px 300px 250px 300px'}}>
-      <div></div><div>Title</div><div>Rating</div><div>Date Seen</div>
-        {(watchedMovies.length > 0) ? watchedMovies : <p>(Empty)</p>}
+      <div style={{display:'grid', 'grid-template-columns': '30px 275px 200px 300px 300px'}}>
+      <div></div><div>Title</div><div>Rating</div><div>Date Seen</div><div>Date Added</div>
+      {state.movies.map(movie => (
+                  <CSSTransition classNames="item" timeout={500} key={movie.id}>
+                  <MovieItem item={movie}  
+                  removeMovie={removeMovie} 
+                  handleChangeRating={handleChangeRating} 
+                  handleDateChange={handleChangeRating}/>
+                  </CSSTransition>
+                  ))}
         </div>
-        <div>
-        </div>
-        <div>
-        </div>
-        <div>
-        </div>
-        <div>
-        </div>
-        </div>
+        <div></div><div></div><div></div><div></div></div>
+      </TransitionGroup>
       </UserContext.Provider>
       </div>
       )
 }
 
 export default App;
+
+
+//{(watchedMovies.length > 0) ? watchedMovies : <p>(Empty)</p>}
