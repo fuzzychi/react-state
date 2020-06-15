@@ -21,7 +21,7 @@ import MovieItem from './Components/MovieItem';
 function App() {
   
   const notify = (msg) => {
-    toast(msg,{position:toast.POSITION.TOP_LEFT, autoClose:2000,})
+    toast(msg,{position:toast.POSITION.TOP_RIGHT, autoClose:2000,})
   }
 
   const initialState = 
@@ -130,21 +130,20 @@ return (
       </Router>
       <ToastContainer />
       <h1>Watched Movies</h1>
+      <div style={{display:'grid', 'grid-template-columns': '50px 200px 200px 200px 200px'}}>
+      <div></div><div>Title</div><div>Rating</div><div>Date Seen</div><div>Date Entered</div>
+      </div>    
       <TransitionGroup>
-      <div style={{display:'grid', 'grid-template-columns': '400px 300px 300px 200px 200px'}}>
-      <div style={{display:'grid', 'grid-template-columns': '30px 275px 200px 300px 300px'}}>
-      <div></div><div>Title</div><div>Rating</div><div>Date Seen</div><div>Date Added</div>
       {state.movies.map(movie => (
-                  <CSSTransition classNames="item" timeout={500} key={movie.id}>
+                  <CSSTransition classNames="item" timeout={1000} key={movie.id}>
                   <MovieItem item={movie}  
                   removeMovie={removeMovie} 
                   handleChangeRating={handleChangeRating} 
-                  handleDateChange={handleChangeRating}/>
+                  handleDateChange={handleDateChange}/>
                   </CSSTransition>
                   ))}
-        </div>
-        <div></div><div></div><div></div><div></div></div>
       </TransitionGroup>
+      
       </UserContext.Provider>
       </div>
       )

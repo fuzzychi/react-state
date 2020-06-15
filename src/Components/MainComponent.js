@@ -97,7 +97,6 @@ function MainComponent({handleAddMovie})
             </div>
             <button style={{fontSize:"16pt"}} disabled={!selected} onClick={()=> {
                 handleAddMovie(selectedTitle, selectedID)
-                setState(intialState)
                 }}>Add movie</button>
             </>
             :<span></span>
