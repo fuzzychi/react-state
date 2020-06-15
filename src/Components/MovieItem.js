@@ -7,7 +7,7 @@ import DateFnsUtils from '@date-io/date-fns';
 
 function MovieItem({item, removeMovie, handleChangeRating, handleDateChange})
 {
-    return(<div style={{display:'grid', 'grid-template-columns': '50px 200px 200px 200px 200px'}}>
+    return(<div style={{display:'grid', 'grid-template-columns': '50px 250px 150px 200px 200px'}}>
         <MuiPickersUtilsProvider utils={DateFnsUtils}>  
         <div><button style={{width:"20px"}} onClick={() => removeMovie(item)}>x</button></div>
         <div>{item.title}</div>

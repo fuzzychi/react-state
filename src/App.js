@@ -6,12 +6,8 @@ import { Route, Switch, BrowserRouter as Router, NavLink} from 'react-router-dom
 import MainComponent from './Components/MainComponent'
 import SecondComp from './Components/SecondComp'
 import { db } from './firebase';
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Rating from '@material-ui/lab/Rating';
 import {DatePicker as DatePickerMUI} from '@material-ui/pickers';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
-import DateFnsUtils from '@date-io/date-fns';
 import {ToastContainer, toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -130,7 +126,7 @@ return (
       </Router>
       <ToastContainer />
       <h1>Watched Movies</h1>
-      <div style={{display:'grid', 'grid-template-columns': '50px 200px 200px 200px 200px'}}>
+      <div style={{display:'grid', 'grid-template-columns': '50px 250px 150px 200px 200px'}}>
       <div></div><div>Title</div><div>Rating</div><div>Date Seen</div><div>Date Entered</div>
       </div>    
       <TransitionGroup>

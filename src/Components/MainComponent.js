@@ -23,6 +23,10 @@ function MainComponent({handleAddMovie})
         const response = await axios(
         `https://api.themoviedb.org/3/search/movie?query=${val}&language=en-US&api_key=766f9538cfe65a20e82986827e13778d`)
         const movies = await response.data.results.sort((a,b) =>{return b["vote_average"] - a["vote_average"]})
+        if(movies.length > 6)
+        {
+            return movies.slice(0,5)
+        }
         return movies;
     }
     const onChange = (event, {newValue}) =>{       
@@ -54,9 +58,6 @@ function MainComponent({handleAddMovie})
             poster_path:suggestion.poster_path,
         })})
         console.log(suggestion)
-    }
-    const onDateChange = date =>{
-        setState((prevState) => {return ({...prevState, date:date})})
     }
     const {value, suggestedMovies, selected,selectedID,selectedTitle,overview,selectedYear,poster_path} = state;
     const inputProps = {
